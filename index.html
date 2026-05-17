@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>ChrisDrew — Studio Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #09090f;
+      --surface: #111118;
+      --card:    #16161f;
+      --border:  #252535;
+      --accent:  #00ffcc;
+      --accent2: #7c3aed;
+      --muted:   #4a4a6a;
+      --text:    #e2e2f0;
+      --sub:     #7070a0;
+      --danger:  #ff4455;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+      background-image:
+        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(0,255,204,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 50% at 80% 90%, rgba(124,58,237,0.07) 0%, transparent 70%);
+    }
+
+    /* ── Container ── */
+    .studio {
+      width: 100%;
+      max-width: 860px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 24px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .logo h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo p {
+      font-size: 0.7rem;
+      color: var(--sub);
+      margin-top: 2px;
+    }
+
+    /* Step count toggle */
+    .step-toggle {
+      display: flex;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .step-toggle button {
+      padding: 6px 14px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      background: transparent;
+      color: var(--sub);
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .step-toggle button.active {
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 700;
+    }
+
+    /* ── Transport ── */
+    .transport {
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+    }
+
+    #playBtn {
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 10px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    #playBtn:hover { filter: brightness(1.15); }
+    #playBtn.playing { background: var(--danger); }
+
+    .bpm-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .bpm-wrap label {
+      font-size: 0.75rem;
+      color: var(--sub);
+      white-space: nowrap;
+    }
+
+    .bpm-wrap span {
+      color: var(--accent);
+      font-weight: 700;
+      min-width: 32px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 6px var(--accent);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg);
+      cursor: pointer;
+    }
+
+    /* Swing */
+    .swing-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 140px;
+    }
+
+    .swing-wrap label { font-size: 0.75rem; color: var(--sub); white-space: nowrap; }
+    .swing-wrap span { color: var(--accent2); font-weight: 700; min-width: 28px; font-size: 0.8rem; }
+
+    /* ── Sequencer ── */
+    .sequencer {
+      padding: 16px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .track {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      transition: border-color 0.2s;
+    }
+
+    .track:hover { border-color: var(--muted); }
+
+    /* Left panel */
+    .track-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 110px;
+      flex-shrink: 0;
+    }
+
+    .track-name {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--accent);
+    }
+
+    .track-name.snare  { color: #ff9f1c; }
+    .track-name.hihat  { color: #a78bfa; }
+    .track-name.clap   { color: #f472b6; }
+    .track-name.bass   { color: #34d399; }
+
+    .vol-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .vol-icon { font-size: 0.65rem; color: var(--sub); }
+
+    .vol-row input[type="range"] { flex: 1; }
+
+    .mute-btn {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--sub);
+      cursor: pointer;
+      transition: all 0.15s;
+      width: fit-content;
+    }
+
+    .mute-btn:hover { border-color: var(--muted); color: var(--text); }
+    .mute-btn.muted { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+    /* Steps grid */
+    .steps {
+      display: grid;
+      gap: 5px;
+      flex: 1;
+      /* dynamic columns set via JS */
+    }
+
+    .step {
+      aspect-ratio: 1;
+      border-radius: 5px;
+      background: var(--border);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background 0.08s, transform 0.08s, box-shadow 0.08s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      min-width: 0;
+    }
+
+    /* Beat grouping - every 4 steps slightly different shade */
+    .step:nth-child(4n+1) { background: #1e1e2e; }
+
+    .step.on {
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(0,255,204,0.5);
+    }
+
+    /* Track color overrides */
+    .track[data-sound="snare"] .step.on  { background: #ff9f1c; box-shadow: 0 0 8px rgba(255,159,28,0.5); }
+    .track[data-sound="hihat"] .step.on  { background: #a78bfa; box-shadow: 0 0 8px rgba(167,139,250,0.5); }
+    .track[data-sound="clap"]  .step.on  { background: #f472b6; box-shadow: 0 0 8px rgba(244,114,182,0.5); }
+    .track[data-sound="bass"]  .step.on  { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.5); }
+
+    .step.cursor {
+      border-color: rgba(255,255,255,0.6);
+      transform: scaleY(1.08);
+    }
+
+    .step:active { transform: scale(0.92); }
+
+    /* ── Init overlay ── */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(9,9,15,0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 999;
+      backdrop-filter: blur(6px);
+    }
+
+    #overlay p {
+      font-size: 1rem;
+      color: var(--sub);
+      text-align: center;
+      max-width: 260px;
+      line-height: 1.6;
+    }
+
+    #overlay button {
+      font-family: 'Space Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 16px 40px;
+      border-radius: 10px;
+      cursor: pointer;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,204,0.4); }
+      50%       { box-shadow: 0 0 0 12px rgba(0,255,204,0); }
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 12px 24px;
+      border-top: 1px solid var(--border);
+      font-size: 0.65rem;
+      color: var(--sub);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 540px) {
+      body { padding: 8px; }
+
+      .studio { border-radius: 14px; }
+
+      .header { padding: 14px 14px 12px; }
+
+      .transport { padding: 12px 14px; gap: 10px; }
+
+      .sequencer { padding: 12px 14px 16px; gap: 8px; }
+
+      .track { padding: 8px 10px; gap: 8px; }
+
+      .track-panel { width: 80px; }
+
+      .track-name { font-size: 0.62rem; }
+
+      .steps { gap: 4px; }
+
+      .step { border-radius: 4px; }
+    }
+
+    @media (max-width: 380px) {
+      .track-panel { width: 68px; }
+      .vol-row input[type="range"] { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Audio init overlay (required by all browsers) -->
+<div id="overlay">
+  <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;background:linear-gradient(90deg,#00ffcc,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent">ChrisDrew</div>
+  <p>Tap to initialise the audio engine</p>
+  <button id="startBtn">▶ START</button>
+</div>
+
+<div class="studio">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <h1>ChrisDrew</h1>
+      <p>Founded by Shayne Mwanza &nbsp;·&nbsp; Studio Engine v2.1</p>
+    </div>
+    <div class="step-toggle">
+      <button class="active" data-steps="8">8</button>
+      <button data-steps="16">16</button>
+    </div>
+  </div>
+
+  <!-- Transport -->
+  <div class="transport">
+    <button id="playBtn">▶ PLAY</button>
+
+    <div class="bpm-wrap">
+      <label>BPM <span id="bpmVal">120</span></label>
+      <input type="range" id="bpmSlider" min="60" max="200" value="120">
+    </div>
+
+    <div class="swing-wrap">
+      <label>SWING <span id="swingVal">0%</span></label>
+      <input type="range" id="swingSlider" min="0" max="60" value="0">
+    </div>
+  </div>
+
+  <!-- Sequencer -->
+  <div class="sequencer" id="sequencer"></div>
+
+  <div class="footer">ChrisDrew &copy; 2026 &nbsp;·&nbsp; All devices compatible</div>
+</div>
+
+<script>
+/* ─── State ─── */
+let audioCtx   = null;
+let isPlaying  = false;
+let stepCount  = 8;
+let currentStep= 0;
+let bpm        = 120;
+let swingPct   = 0;        // 0–60 %
+let timerId    = null;
+let nextBeatTime = 0;      // Web Audio clock time for next step
+
+/* Track definitions */
+const TRACKS = [
+  { id:'kick',  label:'KICK',    cls:'kick'  },
+  { id:'snare', label:'SNARE',   cls:'snare' },
+  { id:'hihat', label:'HI-HAT',  cls:'hihat' },
+  { id:'clap',  label:'CLAP',    cls:'clap'  },
+  { id:'bass',  label:'808 BASS',cls:'bass'  },
+];
+
+/* patterns[trackId][step] = true/false */
+const patterns = {};
+TRACKS.forEach(t => {
+  patterns[t.id] = new Array(32).fill(false);
+});
+
+/* Default pattern */
+patterns.kick[0]  = patterns.kick[4]  = true;
+patterns.snare[2] = patterns.snare[6] = true;
+patterns.hihat[0] = patterns.hihat[1] = patterns.hihat[2] = patterns.hihat[3] =
+patterns.hihat[4] = patterns.hihat[5] = patterns.hihat[6] = patterns.hihat[7] = true;
+
+/* ─── Build UI ─── */
+function buildSequencer() {
+  const seq = document.getElementById('sequencer');
+  seq.innerHTML = '';
+
+  TRACKS.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'track';
+    row.dataset.sound = t.id;
+
+    row.innerHTML = `
+      <div class="track-panel">
+        <div class="track-name ${t.cls}">${t.label}</div>
+        <div class="vol-row">
+          <span class="vol-icon">🔊</span>
+          <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="${t.id==='hihat'?0.5:0.8}">
+        </div>
+        <button class="mute-btn" data-track="${t.id}">MUTE</button>
+      </div>
+      <div class="steps" id="steps-${t.id}" style="grid-template-columns:repeat(${stepCount},1fr)">
+        ${Array.from({length:stepCount},(_,i)=>`
+          <div class="step${patterns[t.id][i]?' on':''}" data-track="${t.id}" data-i="${i}"></div>
+        `).join('')}
+      </div>
+    `;
+    seq.appendChild(row);
+  });
+
+  /* Step toggle events */
+  seq.querySelectorAll('.step').forEach(s => {
+    s.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      const { track, i } = s.dataset;
+      patterns[track][+i] = !patterns[track][+i];
+      s.classList.toggle('on', patterns[track][+i]);
+    });
+  });
+
+  /* Mute events */
+  seq.querySelectorAll('.mute-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('muted');
+    });
+  });
+}
+
+function setStepCount(n) {
+  stepCount = n;
+  if (currentStep >= stepCount) currentStep = 0;
+
+  TRACKS.forEach(t => {
+    const container = document.getElementById('steps-' + t.id);
+    if (!container) return;
+    container.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+
+    /* Add / remove step cells */
+    const current = container.querySelectorAll('.step');
+    if (current.length < n) {
+      for (let i = current.length; i < n; i++) {
+        const s = document.createElement('div');
+        s.className = 'step' + (patterns[t.id][i] ? ' on' : '');
+        s.dataset.track = t.id;
+        s.dataset.i = i;
+        s.addEventListener('pointerdown', e => {
+          e.preventDefault();
+          patterns[t.id][+s.dataset.i] = !patterns[t.id][+s.dataset.i];
+          s.classList.toggle('on', patterns[t.id][+s.dataset.i]);
+        });
+        container.appendChild(s);
+      }
+    } else if (current.length > n) {
+      for (let i = current.length - 1; i >= n; i--) {
+        current[i].remove();
+      }
+    }
+  });
+}
+
+/* ─── Audio Engine ─── */
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function getVolume(trackId) {
+  const btn = document.querySelector(`.mute-btn[data-track="${trackId}"]`);
+  if (btn && btn.classList.contains('muted')) return 0;
+  const slider = document.querySelector(`.track[data-sound="${trackId}"] .vol-slider`);
+  return slider ? parseFloat(slider.value) : 0.8;
+}
+
+function clampGain(v) { return Math.max(0.0001, Math.min(1, v)); }
+
+function playKick(when, vol) {
+  const g = audioCtx.createGain();
+  g.connect(audioCtx.destination);
+  g.gain.setValueAtTime(clampGain(vol), when);
+  g.gain.exponentialRampToValueAtTime(0.0001, when + 0.35);
+
+  const osc = audioCtx.createOscillator();
+  osc.connect(g);
+  osc.frequency.setValueAtTime(160, when);
+  osc.frequency.exponentialRampToValueAtTime(0.0001, when + 0.35);
+  osc.start(when);
+  osc.stop(when + 0.36);
+}
+
+function playSnare(when, vol) {
+  /* Tone body */
+  const g1 = audioCtx.createGain();
+  g1.connect(audioCtx.destination);
+  g1.gain.setValueAtTime(clampGain(vol * 0.7), when);
+  g1.gain.exponentialRampToValueAtTime(0.0001, when + 0.18);
+  const osc = audioCtx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.value = 190;
+  osc.connect(g1);
+  osc.start(when); osc.stop(when + 0.19);
+
+  /* Noise crack */
+  const bufLen = Math.floor(audioCtx.sampleRate * 0.25);
+  const buf = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buf;
+
+  const hpf = audioCtx.createBiquadFilter();
+  hpf.type = 'highpass';
+  hpf.frequency.value = 1200;
+
+  const g2 = audioCtx.createGain();
+  g2.gain.setValueAtTime(clampGain(vol * 0.6), when);
+  g2.gain.exponentialRampToValueAtTime(0.0001, when + 0.2);
+
+  noise.connect(hpf); hpf.connect(g2); g2.connect(audioCtx.destination);
+  noise.start(when); noise.stop(when + 0.21);
+}
+
+function playHiHat(when, vol, open = false) {
+  const dur = open ? 0.35 : 0.05;
+  const bufLen = Math.floor(audioCtx.sampleRate * (dur + 0.02));
+  const buf = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buf;
+
+  const hpf = audioCtx.createBiquadFilter();
+  hpf.type = 'highpass';
+  hpf.frequency.value = 7000;
+
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(clampGain(vol * 0.35), when);
+  g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+
+  noise.connect(hpf); hpf.connect(g); g.connect(audioCtx.destination);
+  noise.start(when); noise.stop(when + dur + 0.01);
+}
+
+function playClap(when, vol) {
+  for (let i = 0; i < 3; i++) {
+    const t = when + i * 0.012;
+    const bufLen = Math.floor(audioCtx.sampleRate * 0.07);
+    const buf = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let j = 0; j < bufLen; j++) data[j] = Math.random() * 2 - 1;
+
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buf;
+
+    const bpf = audioCtx.createBiquadFilter();
+    bpf.type = 'bandpass';
+    bpf.frequency.value = 1100;
+    bpf.Q.value = 0.8;
+
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(clampGain(vol * 0.5), t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+
+    noise.connect(bpf); bpf.connect(g); g.connect(audioCtx.destination);
+    noise.start(t); noise.stop(t + 0.09);
+  }
+}
+
+function playBass(when, vol) {
+  const g = audioCtx.createGain();
+  g.connect(audioCtx.destination);
+  g.gain.setValueAtTime(clampGain(vol * 0.9), when);
+  g.gain.exponentialRampToValueAtTime(0.0001, when + 0.5);
+
+  const osc = audioCtx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(55, when);
+  osc.frequency.exponentialRampToValueAtTime(0.0001, when + 0.5);
+  osc.connect(g);
+  osc.start(when); osc.stop(when + 0.51);
+}
+
+function triggerSound(trackId, when, vol) {
+  if (vol <= 0) return;
+  switch(trackId) {
+    case 'kick':  playKick(when, vol);  break;
+    case 'snare': playSnare(when, vol); break;
+    case 'hihat': playHiHat(when, vol); break;
+    case 'clap':  playClap(when, vol);  break;
+    case 'bass':  playBass(when, vol);  break;
+  }
+}
+
+/* ─── Scheduler (lookahead approach — drift-free) ─── */
+const LOOKAHEAD  = 0.1;   // seconds ahead to schedule
+const SCHEDINT   = 50;    // ms scheduler interval
+
+function stepInterval() {
+  const beat = 60 / bpm;        // seconds per beat (quarter note)
+  const step = beat / 2;        // eighth-note grid (2 steps per beat)
+  /* Apply swing on odd steps */
+  const swing = (swingPct / 100) * step;
+  return { even: step - swing * 0.5, odd: step + swing * 0.5 };
+}
+
+function scheduleAhead() {
+  while (nextBeatTime < audioCtx.currentTime + LOOKAHEAD) {
+    const si = stepInterval();
+    const isOdd = currentStep % 2 === 1;
+    const dur   = isOdd ? si.odd : si.even;
+
+    /* Fire sounds */
+    TRACKS.forEach(t => {
+      if (patterns[t.id][currentStep]) {
+        triggerSound(t.id, nextBeatTime, getVolume(t.id));
+      }
+    });
+
+    /* Update visual cursor on next animation frame */
+    const capStep = currentStep;
+    requestAnimationFrame(() => updateCursor(capStep));
+
+    nextBeatTime += dur;
+    currentStep  = (currentStep + 1) % stepCount;
+  }
+}
+
+function updateCursor(step) {
+  document.querySelectorAll('.step.cursor').forEach(s => s.classList.remove('cursor'));
+  TRACKS.forEach(t => {
+    const el = document.querySelector(`#steps-${t.id} [data-i="${step}"]`);
+    if (el) el.classList.add('cursor');
+  });
+}
+
+function startPlayback() {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  currentStep  = 0;
+  nextBeatTime = audioCtx.currentTime + 0.05;
+  timerId = setInterval(scheduleAhead, SCHEDINT);
+  document.getElementById('playBtn').textContent = '■ STOP';
+  document.getElementById('playBtn').classList.add('playing');
+  isPlaying = true;
+}
+
+function stopPlayback() {
+  clearInterval(timerId);
+  timerId = null;
+  isPlaying = false;
+  currentStep = 0;
+  document.querySelectorAll('.step.cursor').forEach(s => s.classList.remove('cursor'));
+  document.getElementById('playBtn').textContent = '▶ PLAY';
+  document.getElementById('playBtn').classList.remove('playing');
+}
+
+/* ─── Controls wiring ─── */
+document.getElementById('playBtn').addEventListener('click', () => {
+  isPlaying ? stopPlayback() : startPlayback();
+});
+
+document.getElementById('bpmSlider').addEventListener('input', e => {
+  bpm = parseInt(e.target.value, 10);
+  document.getElementById('bpmVal').textContent = bpm;
+});
+
+document.getElementById('swingSlider').addEventListener('input', e => {
+  swingPct = parseInt(e.target.value, 10);
+  document.getElementById('swingVal').textContent = swingPct + '%';
+});
+
+document.querySelectorAll('.step-toggle button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.step-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    setStepCount(parseInt(btn.dataset.steps, 10));
+  });
+});
+
+/* ─── Init overlay ─── */
+document.getElementById('startBtn').addEventListener('click', () => {
+  initAudio();
+  document.getElementById('overlay').style.display = 'none';
+  buildSequencer();
+});
+</script>
+</body>
+</html>
