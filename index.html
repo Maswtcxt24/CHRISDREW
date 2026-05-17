@@ -1,510 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>ChrisDrew — Studio Engine</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-
-  <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    :root {
-      --bg:      #09090f;
-      --surface: #111118;
-      --card:    #16161f;
-      --border:  #252535;
-      --accent:  #00ffcc;
-      --accent2: #7c3aed;
-      --muted:   #4a4a6a;
-      --text:    #e2e2f0;
-      --sub:     #7070a0;
-      --danger:  #ff4455;
-    }
-
-    /* ✅ SCROLL FIXED */
-    html, body {
-      min-height: 100%;
-      overflow-x: hidden;
-      overflow-y: auto;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 16px;
-
-      background-image:
-        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(0,255,204,0.06) 0%, transparent 70%),
-        radial-gradient(ellipse 50% 50% at 80% 90%, rgba(124,58,237,0.07) 0%, transparent 70%);
-    }
-
-    /* ── Container ── */
-    .studio {
-      width: 100%;
-      max-width: 860px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-
-      overflow-x: auto;
-      overflow-y: visible;
-
-      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-      -webkit-overflow-scrolling: touch;
-    }
-
-    /* ── Header ── */
-    .header {
-      padding: 24px 24px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .logo h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(1.4rem, 5vw, 2rem);
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .logo p {
-      font-size: 0.7rem;
-      color: var(--sub);
-      margin-top: 2px;
-    }
-
-    /* Step count toggle */
-    .step-toggle {
-      display: flex;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .step-toggle button {
-      padding: 6px 14px;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
-      background: transparent;
-      color: var(--sub);
-      border: none;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .step-toggle button.active {
-      background: var(--accent);
-      color: var(--bg);
-      font-weight: 700;
-    }
-
-    /* ── Transport ── */
-    .transport {
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      border-bottom: 1px solid var(--border);
-      background: var(--card);
-    }
-
-    #playBtn {
-      font-family: 'Space Mono', monospace;
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 1px;
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      padding: 10px 28px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      flex-shrink: 0;
-    }
-
-    #playBtn:hover {
-      filter: brightness(1.15);
-    }
-
-    #playBtn.playing {
-      background: var(--danger);
-    }
-
-    .bpm-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-      min-width: 180px;
-    }
-
-    .bpm-wrap label {
-      font-size: 0.75rem;
-      color: var(--sub);
-      white-space: nowrap;
-    }
-
-    .bpm-wrap span {
-      color: var(--accent);
-      font-weight: 700;
-      min-width: 32px;
-    }
-
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      height: 4px;
-      border-radius: 2px;
-      background: var(--border);
-      outline: none;
-      cursor: pointer;
-      flex: 1;
-    }
-
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--accent);
-      cursor: pointer;
-      border: 2px solid var(--bg);
-      box-shadow: 0 0 6px var(--accent);
-    }
-
-    input[type="range"]::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--accent);
-      border: 2px solid var(--bg);
-      cursor: pointer;
-    }
-
-    /* Swing */
-    .swing-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 140px;
-    }
-
-    .swing-wrap label {
-      font-size: 0.75rem;
-      color: var(--sub);
-      white-space: nowrap;
-    }
-
-    .swing-wrap span {
-      color: var(--accent2);
-      font-weight: 700;
-      min-width: 28px;
-      font-size: 0.8rem;
-    }
-
-    /* ── Sequencer ── */
-    .sequencer {
-      padding: 16px 24px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .track {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 12px;
-      transition: border-color 0.2s;
-    }
-
-    .track:hover {
-      border-color: var(--muted);
-    }
-
-    /* Left panel */
-    .track-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      width: 110px;
-      flex-shrink: 0;
-    }
-
-    .track-name {
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--accent);
-    }
-
-    .track-name.snare  { color: #ff9f1c; }
-    .track-name.hihat  { color: #a78bfa; }
-    .track-name.clap   { color: #f472b6; }
-    .track-name.bass   { color: #34d399; }
-
-    .vol-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .vol-icon {
-      font-size: 0.65rem;
-      color: var(--sub);
-    }
-
-    .vol-row input[type="range"] {
-      flex: 1;
-    }
-
-    .mute-btn {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.6rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 3px 7px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--sub);
-      cursor: pointer;
-      transition: all 0.15s;
-      width: fit-content;
-    }
-
-    .mute-btn:hover {
-      border-color: var(--muted);
-      color: var(--text);
-    }
-
-    .mute-btn.muted {
-      background: var(--danger);
-      border-color: var(--danger);
-      color: #fff;
-    }
-
-    /* Steps grid */
-    .steps {
-      display: grid;
-      gap: 5px;
-      flex: 1;
-    }
-
-    .step {
-      aspect-ratio: 1;
-      border-radius: 5px;
-      background: var(--border);
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: background 0.08s, transform 0.08s, box-shadow 0.08s;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      min-width: 0;
-    }
-
-    .step:nth-child(4n+1) {
-      background: #1e1e2e;
-    }
-
-    .step.on {
-      background: var(--accent);
-      box-shadow: 0 0 8px rgba(0,255,204,0.5);
-    }
-
-    .track[data-sound="snare"] .step.on {
-      background: #ff9f1c;
-      box-shadow: 0 0 8px rgba(255,159,28,0.5);
-    }
-
-    .track[data-sound="hihat"] .step.on {
-      background: #a78bfa;
-      box-shadow: 0 0 8px rgba(167,139,250,0.5);
-    }
-
-    .track[data-sound="clap"] .step.on {
-      background: #f472b6;
-      box-shadow: 0 0 8px rgba(244,114,182,0.5);
-    }
-
-    .track[data-sound="bass"] .step.on {
-      background: #34d399;
-      box-shadow: 0 0 8px rgba(52,211,153,0.5);
-    }
-
-    .step.cursor {
-      border-color: rgba(255,255,255,0.6);
-      transform: scaleY(1.08);
-    }
-
-    .step:active {
-      transform: scale(0.92);
-    }
-
-    /* ── Init overlay ── */
-    #overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(9,9,15,0.92);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      z-index: 999;
-      backdrop-filter: blur(6px);
-    }
-
-    #overlay p {
-      font-size: 1rem;
-      color: var(--sub);
-      text-align: center;
-      max-width: 260px;
-      line-height: 1.6;
-    }
-
-    #overlay button {
-      font-family: 'Space Mono', monospace;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 2px;
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      padding: 16px 40px;
-      border-radius: 10px;
-      cursor: pointer;
-      animation: pulse 1.6s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        box-shadow: 0 0 0 0 rgba(0,255,204,0.4);
-      }
-      50% {
-        box-shadow: 0 0 0 12px rgba(0,255,204,0);
-      }
-    }
-
-    /* ── Footer ── */
-    .footer {
-      padding: 12px 24px;
-      border-top: 1px solid var(--border);
-      font-size: 0.65rem;
-      color: var(--sub);
-      text-align: center;
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 540px) {
-      body {
-        padding: 8px;
-      }
-
-      .studio {
-        border-radius: 14px;
-      }
-
-      .header {
-        padding: 14px 14px 12px;
-      }
-
-      .transport {
-        padding: 12px 14px;
-        gap: 10px;
-      }
-
-      .sequencer {
-        padding: 12px 14px 16px;
-        gap: 8px;
-      }
-
-      .track {
-        padding: 8px 10px;
-        gap: 8px;
-      }
-
-      .track-panel {
-        width: 80px;
-      }
-
-      .track-name {
-        font-size: 0.62rem;
-      }
-
-      .steps {
-        gap: 4px;
-      }
-
-      .step {
-        border-radius: 4px;
-      }
-    }
-
-    @media (max-width: 380px) {
-      .track-panel {
-        width: 68px;
-      }
-
-      .vol-row input[type="range"] {
-        display: none;
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+<title>ChrisDrew — Studio Engine</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+:root{
+  --bg:#09090f;
+  --surface:#111118;
+  --card:#16161f;
+  --border:#252535;
+  --accent:#00ffcc;
+  --accent2:#7c3aed;
+  --muted:#4a4a6a;
+  --text:#e2e2f0;
+  --sub:#7070a0;
+  --danger:#ff4455;
+}
+
+/* ✅ FIXED */
+html,body{
+  min-height:100%;
+  overflow-x:hidden;
+  overflow-y:auto;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Space Mono',monospace;
+  -webkit-overflow-scrolling:touch;
+}
+
+body{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
+  padding:16px;
+
+  background-image:
+  radial-gradient(ellipse 60% 40% at 20% 10%, rgba(0,255,204,0.06) 0%, transparent 70%),
+  radial-gradient(ellipse 50% 50% at 80% 90%, rgba(124,58,237,0.07) 0%, transparent 70%);
+}
+
+/* STUDIO */
+.studio{
+  width:100%;
+  max-width:860px;
+
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+
+  overflow-x:auto;
+  overflow-y:visible;
+
+  box-shadow:0 24px 80px rgba(0,0,0,0.6);
+}
+
+/* HEADER */
+.header{
+  padding:24px;
+  border-bottom:1px solid var(--border);
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.logo h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(1.4rem,5vw,2rem);
+  font-weight:800;
+
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.logo p{
+  font-size:.7rem;
+  color:var(--sub);
+  margin-top:2px;
+}
+
+/* TRANSPORT */
+.transport{
+  padding:16px 24px;
+
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+
+  border-bottom:1px solid var(--border);
+  background:var(--card);
+}
+
+#playBtn{
+  font-family:'Space Mono',monospace;
+  font-weight:700;
+  font-size:.85rem;
+  letter-spacing:1px;
+
+  background:var(--accent);
+  color:var(--bg);
+
+  border:none;
+  padding:10px 28px;
+  border-radius:8px;
+
+  cursor:pointer;
+}
+
+.bpm-wrap,
+.swing-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:1;
+  min-width:180px;
+}
+
+label{
+  font-size:.75rem;
+  color:var(--sub);
+  white-space:nowrap;
+}
+
+label span{
+  color:var(--accent);
+  font-weight:700;
+}
+
+input[type="range"]{
+  flex:1;
+}
+
+/* SEQUENCER */
+.sequencer{
+  padding:16px 24px 24px;
+
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.track{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+
+  padding:10px 12px;
+}
+
+.track-panel{
+  width:110px;
+  flex-shrink:0;
+}
+
+.track-name{
+  font-size:.7rem;
+  font-weight:700;
+  color:var(--accent);
+}
+
+.steps{
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  gap:5px;
+  flex:1;
+}
+
+.step{
+  aspect-ratio:1;
+  border-radius:5px;
+  background:var(--border);
+
+  cursor:pointer;
+  transition:.1s;
+}
+
+.step.on{
+  background:var(--accent);
+  box-shadow:0 0 8px rgba(0,255,204,.5);
+}
+
+.step.cursor{
+  border:2px solid white;
+}
+
+/* ✅ FIXED OVERLAY */
+#overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+
+  background:rgba(9,9,15,.96);
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+
+  z-index:99999;
+
+  touch-action:manipulation;
+}
+
+#overlay p{
+  color:var(--sub);
+}
+
+#overlay button{
+  font-family:'Space Mono',monospace;
+  font-size:1rem;
+  font-weight:700;
+  letter-spacing:2px;
+
+  background:var(--accent);
+  color:var(--bg);
+
+  border:none;
+  padding:16px 40px;
+  border-radius:10px;
+
+  cursor:pointer;
+
+  pointer-events:auto;
+  touch-action:manipulation;
+}
+
+/* FOOTER */
+.footer{
+  padding:12px 24px;
+  border-top:1px solid var(--border);
+
+  font-size:.65rem;
+  color:var(--sub);
+  text-align:center;
+}
+
+/* MOBILE */
+@media (max-width:540px){
+
+  body{
+    padding:8px;
+  }
+
+  .studio{
+    border-radius:14px;
+  }
+
+  .header{
+    padding:14px;
+  }
+
+  .transport{
+    padding:12px 14px;
+  }
+
+  .sequencer{
+    padding:12px 14px 16px;
+  }
+
+  .track{
+    gap:8px;
+  }
+
+  .track-panel{
+    width:80px;
+  }
+
+  .track-name{
+    font-size:.62rem;
+  }
+
+  .steps{
+    gap:4px;
+  }
+}
+</style>
 </head>
 
 <body>
 
+<!-- OVERLAY -->
 <div id="overlay">
-  <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;background:linear-gradient(90deg,#00ffcc,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+
+  <div style="
+    font-family:'Syne',sans-serif;
+    font-size:1.8rem;
+    font-weight:800;
+    background:linear-gradient(90deg,#00ffcc,#7c3aed);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+  ">
     ChrisDrew
   </div>
 
   <p>Tap to initialise the audio engine</p>
 
   <button id="startBtn">▶ START</button>
+
 </div>
 
+<!-- APP -->
 <div class="studio">
 
+  <!-- HEADER -->
   <div class="header">
+
     <div class="logo">
       <h1>ChrisDrew</h1>
-      <p>Founded by Shayne Mwanza · Studio Engine v2.1</p>
+      <p>Founded by Shayne Mwanza · Studio Engine</p>
     </div>
 
-    <div class="step-toggle">
-      <button class="active" data-steps="8">8</button>
-      <button data-steps="16">16</button>
-    </div>
   </div>
 
+  <!-- TRANSPORT -->
   <div class="transport">
+
     <button id="playBtn">▶ PLAY</button>
 
     <div class="bpm-wrap">
@@ -516,10 +349,13 @@
       <label>SWING <span id="swingVal">0%</span></label>
       <input type="range" id="swingSlider" min="0" max="60" value="0">
     </div>
+
   </div>
 
+  <!-- SEQUENCER -->
   <div class="sequencer" id="sequencer"></div>
 
+  <!-- FOOTER -->
   <div class="footer">
     ChrisDrew © 2026 · All devices compatible
   </div>
@@ -527,8 +363,206 @@
 </div>
 
 <script>
-/* SAME JS AS YOUR ORIGINAL */
-console.log("Studio Engine Ready");
+let audioCtx=null;
+let isPlaying=false;
+let currentStep=0;
+let bpm=120;
+let timer=null;
+
+const TRACKS=[
+  {id:'kick',label:'KICK'},
+  {id:'snare',label:'SNARE'},
+  {id:'hihat',label:'HI-HAT'},
+  {id:'clap',label:'CLAP'}
+];
+
+const patterns={
+  kick:[1,0,0,0,1,0,0,0],
+  snare:[0,0,1,0,0,0,1,0],
+  hihat:[1,1,1,1,1,1,1,1],
+  clap:[0,0,1,0,0,0,1,0]
+};
+
+function buildSequencer(){
+
+  const seq=document.getElementById('sequencer');
+  seq.innerHTML='';
+
+  TRACKS.forEach(track=>{
+
+    const row=document.createElement('div');
+    row.className='track';
+
+    row.innerHTML=`
+      <div class="track-panel">
+        <div class="track-name">${track.label}</div>
+      </div>
+
+      <div class="steps" id="steps-${track.id}">
+      </div>
+    `;
+
+    seq.appendChild(row);
+
+    const steps=row.querySelector('.steps');
+
+    for(let i=0;i<8;i++){
+
+      const step=document.createElement('div');
+
+      step.className='step'+(patterns[track.id][i]?' on':'');
+
+      step.dataset.track=track.id;
+      step.dataset.step=i;
+
+      step.onclick=()=>{
+
+        patterns[track.id][i]=patterns[track.id][i]?0:1;
+
+        step.classList.toggle('on');
+      };
+
+      steps.appendChild(step);
+    }
+  });
+}
+
+function initAudio(){
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+}
+
+function beep(freq,duration=0.1){
+
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.frequency.value=freq;
+
+  gain.gain.setValueAtTime(0.2,audioCtx.currentTime);
+
+  gain.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioCtx.currentTime+duration
+  );
+
+  osc.start();
+  osc.stop(audioCtx.currentTime+duration);
+}
+
+function playStep(step){
+
+  document.querySelectorAll('.step.cursor')
+  .forEach(s=>s.classList.remove('cursor'));
+
+  TRACKS.forEach(track=>{
+
+    const el=document.querySelector(
+      `#steps-${track.id} .step[data-step="${step}"]`
+    );
+
+    if(el) el.classList.add('cursor');
+
+    if(patterns[track.id][step]){
+
+      switch(track.id){
+
+        case 'kick':
+          beep(80,0.2);
+          break;
+
+        case 'snare':
+          beep(180,0.12);
+          break;
+
+        case 'hihat':
+          beep(400,0.05);
+          break;
+
+        case 'clap':
+          beep(250,0.08);
+          break;
+      }
+    }
+  });
+}
+
+function startPlayback(){
+
+  if(!audioCtx) return;
+
+  if(audioCtx.state==='suspended'){
+    audioCtx.resume();
+  }
+
+  isPlaying=true;
+
+  document.getElementById('playBtn').innerText='■ STOP';
+
+  const interval=(60/bpm)*500;
+
+  timer=setInterval(()=>{
+
+    playStep(currentStep);
+
+    currentStep=(currentStep+1)%8;
+
+  },interval);
+}
+
+function stopPlayback(){
+
+  isPlaying=false;
+
+  clearInterval(timer);
+
+  document.getElementById('playBtn').innerText='▶ PLAY';
+
+  document.querySelectorAll('.step.cursor')
+  .forEach(s=>s.classList.remove('cursor'));
+}
+
+document.getElementById('playBtn')
+.addEventListener('click',()=>{
+
+  isPlaying ? stopPlayback() : startPlayback();
+
+});
+
+document.getElementById('bpmSlider')
+.addEventListener('input',e=>{
+
+  bpm=parseInt(e.target.value);
+
+  document.getElementById('bpmVal').innerText=bpm;
+
+  if(isPlaying){
+
+    stopPlayback();
+    startPlayback();
+  }
+});
+
+document.getElementById('swingSlider')
+.addEventListener('input',e=>{
+
+  document.getElementById('swingVal').innerText=
+  e.target.value+'%';
+});
+
+/* START BUTTON */
+document.getElementById('startBtn')
+.addEventListener('click',()=>{
+
+  initAudio();
+
+  buildSequencer();
+
+  document.getElementById('overlay').style.display='none';
+
+});
 </script>
 
 </body>
