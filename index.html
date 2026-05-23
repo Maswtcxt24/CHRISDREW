@@ -1,850 +1,573 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ChrisDrew — Studio Engine</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-
-  <style>
-
-    *,*::before,*::after{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-    }
-
-    :root{
-      --bg:#09090f;
-      --surface:#111118;
-      --card:#16161f;
-      --border:#252535;
-      --accent:#00ffcc;
-      --accent2:#7c3aed;
-      --text:#e2e2f0;
-      --sub:#7070a0;
-      --danger:#ff4455;
-    }
-
-    html{
-      height:100%;
-      overflow-x:hidden;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-    }
-
-    body{
-      min-height:100vh;
-      overflow-x:hidden;
-      overflow-y:auto;
-      background:var(--bg);
-      color:var(--text);
-      font-family:'Space Mono', monospace;
-
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-
-      padding:16px;
-
-      background-image:
-      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(0,255,204,0.06) 0%, transparent 70%),
-      radial-gradient(ellipse 50% 50% at 80% 90%, rgba(124,58,237,0.07) 0%, transparent 70%);
-    }
-
-    .studio{
-      width:100%;
-      max-width:860px;
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:20px;
-      overflow:hidden;
-      box-shadow:0 24px 80px rgba(0,0,0,0.6);
-    }
-
-    .header{
-      padding:24px 24px 16px;
-      border-bottom:1px solid var(--border);
-
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-
-    .logo h1{
-      font-family:'Syne',sans-serif;
-      font-size:clamp(1.4rem,5vw,2rem);
-      font-weight:800;
-      background:linear-gradient(90deg,var(--accent),var(--accent2));
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-    }
-
-    .logo p{
-      font-size:.7rem;
-      color:var(--sub);
-      margin-top:2px;
-    }
-
-    .step-toggle{
-      display:flex;
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:8px;
-      overflow:hidden;
-    }
-
-    .step-toggle button{
-      padding:6px 14px;
-      border:none;
-      background:transparent;
-      color:var(--sub);
-      cursor:pointer;
-      font-family:'Space Mono', monospace;
-    }
-
-    .step-toggle button.active{
-      background:var(--accent);
-      color:#000;
-      font-weight:700;
-    }
-
-    .transport{
-      padding:16px 24px;
-      display:flex;
-      align-items:center;
-      gap:16px;
-      flex-wrap:wrap;
-      border-bottom:1px solid var(--border);
-      background:var(--card);
-    }
-
-    #playBtn{
-      background:var(--accent);
-      color:#000;
-      border:none;
-      padding:10px 28px;
-      border-radius:8px;
-      cursor:pointer;
-      font-family:'Space Mono', monospace;
-      font-weight:700;
-    }
-
-    #playBtn.playing{
-      background:var(--danger);
-      color:#fff;
-    }
-
-    .bpm-wrap,
-    .swing-wrap{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex:1;
-      min-width:160px;
-    }
-
-    .bpm-wrap label,
-    .swing-wrap label{
-      font-size:.75rem;
-      color:var(--sub);
-      white-space:nowrap;
-    }
-
-    .bpm-wrap span{
-      color:var(--accent);
-      font-weight:700;
-    }
-
-    .swing-wrap span{
-      color:var(--accent2);
-      font-weight:700;
-    }
-
-    input[type="range"]{
-      flex:1;
-      cursor:pointer;
-    }
-
-    .sequencer{
-      padding:16px 24px 24px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    .track{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px 12px;
-      overflow-x:auto;
-    }
-
-    .track-panel{
-      width:110px;
-      flex-shrink:0;
-
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-
-    .track-name{
-      font-size:.7rem;
-      font-weight:700;
-      letter-spacing:1px;
-      color:var(--accent);
-    }
-
-    .track-name.snare{ color:#ff9f1c; }
-    .track-name.hihat{ color:#a78bfa; }
-    .track-name.clap{ color:#f472b6; }
-    .track-name.bass{ color:#34d399; }
-
-    /* VOLUME SLIDER HIDE */
-    .vol-slider{
-      display:none;
-    }
-
-    .vol-row{
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-
-    .mute-btn{
-      font-size:.6rem;
-      padding:3px 7px;
-      border-radius:4px;
-      border:1px solid var(--border);
-      background:transparent;
-      color:var(--sub);
-      cursor:pointer;
-      font-family:'Space Mono', monospace;
-    }
-
-    .mute-btn.muted{
-      background:var(--danger);
-      color:#fff;
-      border-color:var(--danger);
-    }
-
-    .steps{
-      display:grid;
-      gap:5px;
-      flex:1;
-      min-width:0;
-    }
-
-    .step{
-      width:100%;
-      aspect-ratio:1;
-      min-width:28px;
-
-      border-radius:5px;
-      background:var(--border);
-      border:1px solid transparent;
-
-      cursor:pointer;
-
-      transition:.08s;
-      -webkit-tap-highlight-color:transparent;
-      touch-action:manipulation;
-    }
-
-    .step:nth-child(4n+1){
-      background:#1e1e2e;
-    }
-
-    .step.on{
-      background:var(--accent);
-      box-shadow:0 0 8px rgba(0,255,204,0.5);
-    }
-
-    .track[data-sound="snare"] .step.on{
-      background:#ff9f1c;
-      box-shadow:0 0 8px rgba(255,159,28,.5);
-    }
-
-    .track[data-sound="hihat"] .step.on{
-      background:#a78bfa;
-      box-shadow:0 0 8px rgba(167,139,250,.5);
-    }
-
-    .track[data-sound="clap"] .step.on{
-      background:#f472b6;
-      box-shadow:0 0 8px rgba(244,114,182,.5);
-    }
-
-    .track[data-sound="bass"] .step.on{
-      background:#34d399;
-      box-shadow:0 0 8px rgba(52,211,153,.5);
-    }
-
-    .step.cursor{
-      border-color:#fff;
-      transform:scaleY(1.08);
-    }
-
-    #overlay{
-      position:fixed;
-      inset:0;
-      z-index:9999;
-
-      background:rgba(9,9,15,0.92);
-
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:20px;
-
-      backdrop-filter:blur(6px);
-    }
-
-    #overlay button{
-      padding:16px 40px;
-      border:none;
-      border-radius:10px;
-      cursor:pointer;
-
-      font-size:1rem;
-      font-weight:700;
-      letter-spacing:2px;
-
-      background:var(--accent);
-      color:#000;
-
-      font-family:'Space Mono', monospace;
-    }
-
-    .footer{
-      padding:12px 24px;
-      border-top:1px solid var(--border);
-      font-size:.65rem;
-      color:var(--sub);
-      text-align:center;
-    }
-
-    @media(max-width:540px){
-
-      body{
-        padding:8px;
-      }
-
-      .studio{
-        border-radius:14px;
-      }
-
-      .header{
-        padding:14px;
-      }
-
-      .transport{
-        padding:12px 14px;
-      }
-
-      .sequencer{
-        padding:12px 14px 16px;
-      }
-
-      .track{
-        padding:8px 10px;
-      }
-
-      .track-panel{
-        width:80px;
-      }
-
-      .steps{
-        gap:4px;
-      }
-
-      .step{
-        min-width:24px;
-      }
-    }
-
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChrisDrew Beats | Next-Gen Global DAW & Marketplace</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        :root {
+            --primary: #00ff88;
+            --bg-dark: #0b0c10;
+            --bg-panel: #1f2833;
+            --bg-darker: #121212;
+            --text-main: #c5c6c7;
+            --text-light: #ffffff;
+            --accent: #fc4445;
+            --border-color: #45a29e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- GLOBAL NAVIGATION --- */
+        header {
+            background-color: var(--bg-darker);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            z-index: 10;
+        }
+
+        .logo-area {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            font-size: 11px;
+            color: var(--text-main);
+            letter-spacing: 1px;
+        }
+
+        .nav-links button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            margin: 0 18px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links button:hover {
+            color: var(--primary);
+        }
+
+        .btn-action {
+            background: linear-gradient(45deg, var(--primary), #00b366);
+            color: #000;
+            padding: 10px 22px;
+            border-radius: 25px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.05);
+        }
+
+        /* --- APP WORKSPACE SPLIT --- */
+        .app-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Side Navigation Panel */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-darker);
+            border-right: 1px solid #2d3748;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 25px;
+        }
+
+        .sidebar-section h4 {
+            color: var(--primary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .nav-item:hover {
+            background: #252525;
+            border-left: 3px solid var(--primary);
+        }
+
+        /* Center Production Studio */
+        .main-studio {
+            flex: 1;
+            background-color: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 25px;
+        }
+
+        .studio-banner {
+            background: linear-gradient(135deg, #1f2833 0%, #0b0c10 100%);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #2d3748;
+            margin-bottom: 25px;
+        }
+
+        .studio-banner h1 {
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        /* Audio Grid Display */
+        .track-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: var(--bg-darker);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .audio-track {
+            display: grid;
+            grid-template-columns: 150px 1fr 120px;
+            align-items: center;
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #2d2d2d;
+        }
+
+        .track-info h5 { color: var(--text-light); font-size: 15px; }
+        .track-info p { font-size: 11px; color: var(--text-main); }
+
+        .track-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* --- THE ADVANCED EXPANDED AI CHAT BOT "CHRIS" --- */
+        .bot-trigger-btn {
+            position: fixed;
+            bottom: 60px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--primary), #00cc6a);
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 30px;
+            font-weight: 800;
+            box-shadow: 0 8px 24px rgba(0, 255, 136, 0.3);
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .ai-chat-window {
+            position: fixed;
+            bottom: 130px;
+            right: 30px;
+            width: 380px;
+            height: 500px;
+            background-color: var(--bg-darker);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+
+        .chat-header {
+            background-color: var(--bg-panel);
+            padding: 15px;
+            font-weight: bold;
+            color: var(--text-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #151515;
+        }
+
+        .msg { padding: 10px 14px; border-radius: 8px; max-width: 85%; font-size: 13.5px; line-height: 1.4; }
+        .msg.bot { background-color: var(--bg-panel); color: var(--text-light); align-self: flex-start; border-left: 4px solid var(--primary); }
+        .msg.user { background-color: var(--border-color); color: #000; align-self: flex-end; font-weight: 500; }
+
+        .chat-footer {
+            display: flex;
+            border-top: 1px solid #333;
+            background: var(--bg-darker);
+        }
+
+        .chat-footer input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 15px;
+            color: #fff;
+            outline: none;
+        }
+
+        .chat-footer button {
+            background: var(--primary);
+            border: none;
+            padding: 0 20px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #000;
+        }
+
+        /* --- MODAL DIALOGS --- */
+        .modal-overlay {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            width: 500px;
+            max-width: 95%;
+            padding: 30px;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute; top: 15px; right: 20px;
+            color: #fff; font-size: 22px; cursor: pointer;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 13px; }
+        .form-group input {
+            width: 100%; padding: 12px; background: var(--bg-dark);
+            border: 1px solid #444; color: #fff; border-radius: 6px;
+        }
+
+        /* --- FOOTER REGION --- */
+        footer {
+            background-color: var(--bg-darker);
+            padding: 20px 40px;
+            border-top: 1px solid #2d3748;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .footer-left { line-height: 1.6; }
+        .footer-right a {
+            color: var(--primary);
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 600;
+        }
+        .footer-right a:hover { text-decoration: underline; }
+    </style>
 </head>
-
 <body>
 
-<div id="overlay">
-
-  <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;background:linear-gradient(90deg,#00ffcc,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
-    ChrisDrew
-  </div>
-
-  <p style="color:#aaa;">Tap to initialise audio</p>
-
-  <button id="startBtn">▶ START</button>
-
-</div>
-
-<div class="studio">
-
-  <div class="header">
-
-    <div class="logo">
-      <h1>ChrisDrew</h1>
-      <p>Founded by Shayne Mwanza · Studio Engine v2.1</p>
-    </div>
-
-    <div class="step-toggle">
-      <button class="active" data-steps="8">8</button>
-      <button data-steps="16">16</button>
-    </div>
-
-  </div>
-
-  <div class="transport">
-
-    <button id="playBtn">▶ PLAY</button>
-
-    <div class="bpm-wrap">
-      <label>BPM <span id="bpmVal">120</span></label>
-      <input type="range" id="bpmSlider" min="60" max="200" value="120">
-    </div>
-
-    <div class="swing-wrap">
-      <label>SWING <span id="swingVal">0%</span></label>
-      <input type="range" id="swingSlider" min="0" max="60" value="0">
-    </div>
-
-  </div>
-
-  <div class="sequencer" id="sequencer"></div>
-
-  <div class="footer">
-    ChrisDrew © 2026 All Rights Are Reserved.
-    FOUNDER : Shayne Mwanza
-    DEPLOYED BY: ABDULLAH SULEMAN
-  </div>
-
-</div>
-
-<script>
-
-let audioCtx = null;
-let isPlaying = false;
-let stepCount = 8;
-let currentStep = 0;
-let bpm = 120;
-let swingPct = 0;
-let timerId = null;
-
-const TRACKS = [
-  { id:'kick',  label:'KICK', cls:'kick' },
-  { id:'snare', label:'SNARE', cls:'snare' },
-  { id:'hihat', label:'HI-HAT', cls:'hihat' },
-  { id:'clap',  label:'CLAP', cls:'clap' },
-  { id:'bass',  label:'808 BASS', cls:'bass' }
-];
-
-const patterns = {};
-
-TRACKS.forEach(t=>{
-  patterns[t.id] = new Array(32).fill(false);
-});
-
-patterns.kick[0] = true;
-patterns.kick[4] = true;
-
-patterns.snare[2] = true;
-patterns.snare[6] = true;
-
-for(let i=0;i<8;i++){
-  patterns.hihat[i] = true;
-}
-
-function buildSequencer(){
-
-  const seq = document.getElementById('sequencer');
-  seq.innerHTML = '';
-
-  TRACKS.forEach(t=>{
-
-    const row = document.createElement('div');
-
-    row.className = 'track';
-    row.dataset.sound = t.id;
-
-    row.innerHTML = `
-      <div class="track-panel">
-
-        <div class="track-name ${t.cls}">
-          ${t.label}
+    <header>
+        <div class="logo-area">
+            <div class="logo">ChrisDrew Beats</div>
+            <div class="tagline">Global Next-Gen Audio Ecosystem</div>
         </div>
-
-        <div class="vol-row">
-
-          <span>🔊</span>
-
-          <input
-            type="range"
-            class="vol-slider"
-            min="0"
-            max="1"
-            step="0.05"
-            value="1"
-          >
-
+        <div class="nav-links">
+            <button onclick="switchTab('studio')">DAW Studio</button>
+            <button onclick="switchTab('marketplace')">Marketplace Hub</button>
+            <button onclick="openModal('battleModal')">Producer Battles</button>
+            <button onclick="openModal('authModal')" class="btn-action">Access Account</button>
         </div>
-
-        <button class="mute-btn" data-track="${t.id}">
-          MUTE
-        </button>
-
-      </div>
-
-      <div class="steps"
-        id="steps-${t.id}"
-        style="grid-template-columns:repeat(${stepCount},1fr)">
-      </div>
-    `;
-
-    seq.appendChild(row);
-
-    const stepsContainer = row.querySelector('.steps');
-
-    for(let i=0;i<stepCount;i++){
-
-      const step = document.createElement('div');
-
-      step.className =
-        'step' +
-        (patterns[t.id][i] ? ' on' : '');
-
-      step.dataset.track = t.id;
-      step.dataset.i = i;
-
-      step.addEventListener('click', ()=>{
-
-        patterns[t.id][i] = !patterns[t.id][i];
-
-        step.classList.toggle('on');
-      });
-
-      stepsContainer.appendChild(step);
-    }
-  });
-
-  document.querySelectorAll('.mute-btn').forEach(btn=>{
-
-    btn.addEventListener('click', ()=>{
-
-      btn.classList.toggle('muted');
-    });
-  });
-}
-
-function initAudio(){
-
-  audioCtx =
-    new (window.AudioContext || window.webkitAudioContext)();
-
-  if(audioCtx.state === 'suspended'){
-    audioCtx.resume();
-  }
-}
-
-function getVolume(trackId){
-
-  const muteBtn =
-    document.querySelector(
-      `.mute-btn[data-track="${trackId}"]`
-    );
-
-  if(muteBtn.classList.contains('muted')){
-    return 0;
-  }
-
-  return 1;
-}
-
-function playKick(time, vol){
-
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-
-  osc.frequency.setValueAtTime(150, time);
-
-  osc.frequency.exponentialRampToValueAtTime(
-    0.001,
-    time + 0.5
-  );
-
-  gain.gain.setValueAtTime(vol, time);
-
-  gain.gain.exponentialRampToValueAtTime(
-    0.001,
-    time + 0.5
-  );
-
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  osc.start(time);
-  osc.stop(time + 0.5);
-}
-
-function noiseBuffer(){
-
-  const buffer =
-    audioCtx.createBuffer(
-      1,
-      audioCtx.sampleRate * 0.2,
-      audioCtx.sampleRate
-    );
-
-  const data = buffer.getChannelData(0);
-
-  for(let i=0;i<data.length;i++){
-    data[i] = Math.random()*2 - 1;
-  }
-
-  return buffer;
-}
-
-function playNoise(time, vol, filterFreq){
-
-  const noise = audioCtx.createBufferSource();
-
-  noise.buffer = noiseBuffer();
-
-  const filter = audioCtx.createBiquadFilter();
-
-  filter.type = 'highpass';
-  filter.frequency.value = filterFreq;
-
-  const gain = audioCtx.createGain();
-
-  gain.gain.setValueAtTime(vol, time);
-
-  gain.gain.exponentialRampToValueAtTime(
-    0.001,
-    time + 0.15
-  );
-
-  noise.connect(filter);
-  filter.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  noise.start(time);
-  noise.stop(time + 0.15);
-}
-
-function playBass(time, vol){
-
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-
-  osc.type = 'sine';
-
-  osc.frequency.setValueAtTime(55, time);
-
-  gain.gain.setValueAtTime(vol, time);
-
-  gain.gain.exponentialRampToValueAtTime(
-    0.001,
-    time + 0.5
-  );
-
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  osc.start(time);
-  osc.stop(time + 0.5);
-}
-
-function trigger(trackId, time){
-
-  const vol = getVolume(trackId);
-
-  if(vol <= 0) return;
-
-  switch(trackId){
-
-    case 'kick':
-      playKick(time, vol);
-      break;
-
-    case 'snare':
-      playNoise(time, vol * 0.8, 1200);
-      break;
-
-    case 'hihat':
-      playNoise(time, vol * 0.4, 7000);
-      break;
-
-    case 'clap':
-      playNoise(time, vol * 0.6, 1500);
-      break;
-
-    case 'bass':
-      playBass(time, vol);
-      break;
-  }
-}
-
-function updateCursor(step){
-
-  document.querySelectorAll('.step.cursor')
-  .forEach(el=>{
-    el.classList.remove('cursor');
-  });
-
-  TRACKS.forEach(t=>{
-
-    const el =
-      document.querySelector(
-        `#steps-${t.id} .step[data-i="${step}"]`
-      );
-
-    if(el){
-      el.classList.add('cursor');
-    }
-  });
-}
-
-function nextStep(){
-
-  const secondsPerBeat = 60 / bpm;
-  const stepTime = secondsPerBeat / 2;
-
-  TRACKS.forEach(t=>{
-
-    if(patterns[t.id][currentStep]){
-      trigger(t.id, audioCtx.currentTime);
-    }
-  });
-
-  updateCursor(currentStep);
-
-  currentStep++;
-
-  if(currentStep >= stepCount){
-    currentStep = 0;
-  }
-
-  const swingOffset =
-    (currentStep % 2)
-    ? stepTime * (swingPct / 100)
-    : 0;
-
-  timerId = setTimeout(
-    nextStep,
-    (stepTime + swingOffset) * 1000
-  );
-}
-
-function startPlayback(){
-
-  if(!audioCtx) return;
-
-  if(audioCtx.state === 'suspended'){
-    audioCtx.resume();
-  }
-
-  isPlaying = true;
-
-  document.getElementById('playBtn').innerText =
-    '■ STOP';
-
-  document.getElementById('playBtn')
-  .classList.add('playing');
-
-  nextStep();
-}
-
-function stopPlayback(){
-
-  isPlaying = false;
-
-  clearTimeout(timerId);
-
-  document.getElementById('playBtn').innerText =
-    '▶ PLAY';
-
-  document.getElementById('playBtn')
-  .classList.remove('playing');
-
-  document.querySelectorAll('.step.cursor')
-  .forEach(el=>{
-    el.classList.remove('cursor');
-  });
-
-  currentStep = 0;
-}
-
-document.getElementById('playBtn')
-.addEventListener('click', ()=>{
-
-  if(!audioCtx) return;
-
-  if(isPlaying){
-    stopPlayback();
-  }else{
-    startPlayback();
-  }
-});
-
-document.getElementById('bpmSlider')
-.addEventListener('input', e=>{
-
-  bpm = parseInt(e.target.value);
-
-  document.getElementById('bpmVal').innerText =
-    bpm;
-});
-
-document.getElementById('swingSlider')
-.addEventListener('input', e=>{
-
-  swingPct = parseInt(e.target.value);
-
-  document.getElementById('swingVal').innerText =
-    swingPct + '%';
-});
-
-document.querySelectorAll('.step-toggle button')
-.forEach(btn=>{
-
-  btn.addEventListener('click', ()=>{
-
-    document.querySelectorAll('.step-toggle button')
-    .forEach(b=>b.classList.remove('active'));
-
-    btn.classList.add('active');
-
-    stepCount = parseInt(btn.dataset.steps);
-
-    buildSequencer();
-  });
-});
-
-document.getElementById('startBtn')
-.addEventListener('click', async ()=>{
-
-  initAudio();
-
-  await audioCtx.resume();
-
-  buildSequencer();
-
-  document.getElementById('overlay').style.display =
-    'none';
-});
-
-</script>
-
+    </header>
+
+    <div class="app-container">
+
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h4>Engine Modules</h4>
+                <div class="nav-item" onclick="triggerFeature('On-Device Stem Separation Engine Activated.')">🎛️ Stem Separator (Local)</div>
+                <div class="nav-item" onclick="triggerFeature('Voice-to-Beat tracking audio stream... Hum/Beatbox now.')">🎙️ Voice-To-Beat MIDI</div>
+                <div class="nav-item" onclick="triggerFeature('Humanize Engine processing micro-timing parameters.')">⏳ Humanize Dynamics</div>
+                <div class="nav-item" onclick="triggerFeature('AI Autotagging parsing waveform characteristics...')">🏷️ Waveform AI Auto-Tag</div>
+            </div>
+            <div class="sidebar-section">
+                <h4>Distribution & Sync</h4>
+                <div class="nav-item" onclick="triggerFeature('Sync Licensing distribution pipelines loaded.')">📺 Global Sync Hub</div>
+                <div class="nav-item" onclick="triggerFeature('Micro-Licensing protocols optimized for social formats.')">📱 Micro-License Generation</div>
+                <div class="nav-item" onclick="openModal('paymentModal')">💳 Dynamic Billing Details</div>
+            </div>
+        </aside>
+
+        <main class="main-studio">
+            <div class="studio-banner">
+                <h1>Welcome Back, Executive Team</h1>
+                <p>Founding Hierarchy: <strong>Shayne Mwanza (Founder & CEO)</strong> | <strong>Chrispin Zulu (CFO)</strong> | <strong>Andrew Siwale (CEO)</strong></p>
+                <p style="margin-top: 10px; font-size: 13px; color: var(--primary);">● Platform running in Global Mode. Deployment Sync Nodes: Active.</p>
+            </div>
+
+            <h3 style="color: #fff; margin-bottom: 15px;">Active Desktop Work Session</h3>
+            <div class="track-grid">
+                <div class="audio-track">
+                    <div class="track-info">
+                        <h5>Vocal Stem</h5>
+                        <p>Isolated via Local ML</p>
+                    </div>
+                    <div style="height: 20px; background: #333; border-radius: 4px; overflow: hidden; position: relative;">
+                        <div style="width: 75%; height: 100%; background: var(--primary);"></div>
+                    </div>
+                    <div class="track-controls">
+                        <button style="background:none; border:none; color:#fff; cursor:pointer;">Mute</button>
+                        <button style="background:none; border:none; color:var(--accent); cursor:pointer;">Solo</button>
+                    </div>
+                </div>
+                <div class="audio-track">
+                    <div class="track-info">
+                        <h5>AI Suggested Chords</h5>
+                        <p>Copilot Variation V2</p>
+                    </div>
+                    <div style="height: 20px; background: #333; border-radius: 4px; overflow: hidden; position: relative;">
+                        <div style="width: 45%; height: 100%; background: var(--border-color);"></div>
+                    </div>
+                    <div class="track-controls">
+                        <button style="background:none; border:none; color:#fff; cursor:pointer;">Mute</button>
+                        <button style="background:none; border:none; color:#fff; cursor:pointer;">Solo</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button class="bot-trigger-btn" onclick="toggleChatWindow()">Interactive Help: Ask Chris AI</button>
+
+    <div class="ai-chat-window" id="chrisBotWindow">
+        <div class="chat-header">
+            <span>Chris AI Engine v2.5</span>
+            <span style="cursor: pointer; font-size: 18px;" onclick="toggleChatWindow()">✕</span>
+        </div>
+        <div class="chat-messages" id="chatContainer">
+            <div class="msg bot">
+                Yo! I'm Chris, the official automated system intelligence for ChrisDrew Beats. I am deeply configured to explain any technical execution method across our global ecosystem. Ask me anything about our features, terms, or platform mechanics!
+            </div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="chatInputField" placeholder="Inquire about Stem Isolation, Battles, Royalty Splits..." onkeypress="handleChatKey(event)">
+            <button onclick="processUserQuery()">Query</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal('authModal')">✕</span>
+            <h2 style="color:#fff; margin-bottom: 15px;">Global Access Portal</h2>
+            <div class="form-group">
+                <label>Institutional / Personal Email</label>
+                <input type="email" placeholder="name@domain.com">
+            </div>
+            <div class="form-group">
+                <label>Secure Key Cryptographic Password</label>
+                <input type="password" placeholder="••••••••••••">
+            </div>
+            <button class="btn-action" style="width:100%; margin-top: 10px;" onclick="closeModal('authModal')">Initialize Protocol Connection</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal('paymentModal')">✕</span>
+            <h2 style="color:#fff; margin-bottom: 10px;">Payment Gateway Registration</h2>
+            <p style="font-size: 12px; color: var(--accent); margin-bottom: 20px;">
+                CRITICAL LEGAL NOTICE: Financial instruments are intercepted securely via hardware handshakes directly to processing nodes. Pure card numbers never touch local state arrays.
+            </p>
+            <div class="form-group">
+                <label>Account Holder Name</label>
+                <input type="text" placeholder="Shayne Mwanza">
+            </div>
+            <div class="form-group">
+                <label>Credit / Debit Card Tokenization Field</label>
+                <div id="card-element" style="background: var(--bg-dark); padding: 12px; border-radius: 6px; border: 1px solid #444; color: #fff;">
+                   [Stripe Frame Container Secure Handshake Inject Point]
+                </div>
+            </div>
+            <button class="btn-action" style="width:100%; margin-top: 10px;" onclick="alert('Transaction Handshake Simulated Safely via Sandbox State.')">Commit Payment Integration Pipeline</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="battleModal">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal('battleModal')">✕</span>
+            <h3 style="color:#fff; margin-bottom:10px;">Live 30-Minute Battle Mode Arena</h3>
+            <p style="font-size:14px; line-height:1.5;">Every competitor is given an identical uncompressed root audio sample. A server-side clock counts down from 30:00. Peer evaluations happen instantly upon session closing. Multi-account matching algorithms prevent collusive community voting manipulation.</p>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-left">
+            <strong>ChrisDrew Beats Group</strong> | Executive Officers: Shayne Mwanza, Chrispin Zulu, Andrew Siwale.<br>
+            Corporate Escalations: <a href="mailto:chrisdrewbeats@gmail.com" style="color: var(--primary); text-decoration: none;">chrisdrewbeats@gmail.com</a>
+        </div>
+        <div class="footer-right">
+            <a href="https://wa.me/260962499649?text=Hello%20Andrew,%20I%20have%20a%20query%20regarding%20ChrisDrew%20Beats" target="_blank">Contact CEO Andrew</a>
+            <a href="https://wa.me/260964260572?text=Hello%20Chrispin,%20I%20have%20a%20query%20regarding%20ChrisDrew%20Beats" target="_blank">Contact CFO Chrispin</a>
+            <a href="#" onclick="displayTermsDocument()">Legal Terms & System Conditions</a>
+        </div>
+    </footer>
+
+    <script>
+        // COMPREHENSIVE KNOWLEDGE DICTIONARY FOR THE INTELLIGENT BOT ENGINE "CHRIS"
+        const CHRIS_KNOWLEDGE_BASE = [
+            {
+                keywords: ["stem", "separation", "split", "isolate", "extract"],
+                response: "Our On-Device Stem Separation runs directly inside your web browser using custom WebAssembly compiled binaries. When you drag any audio file into the workspace, your device processing hardware instantly isolates the vocals, rhythm components, harmonics, and sub bass elements without routing raw data up to cloud servers, completely removing data leak risks."
+            },
+            {
+                keywords: ["battle", "battles", "competition", "producer battle", "timer"],
+                response: "The Producer Battle module functions globally. The cloud distribution node distributes a matching audio segment asset package to all locked-in participants simultaneously. You have precisely 30 minutes to craft an arrangement. Community voting tokens use cryptographic fraud detection to block voting cartels."
+            },
+            {
+                keywords: ["royalty", "split", "splits", "auto royalty", "contracts"],
+                response: "Auto Royalty Splits rely on precise internal tracker data tracking every contribution down to millisecond structural modifications. Payout agreements map out user credentials and deploy direct revenue updates dynamically into our integrated multi-currency payment nodes."
+            },
+            {
+                keywords: ["voice", "beatbox", "hum", "voice-to-beat", "midi"],
+                response: "Voice-To-Beat records low-latency incoming audio via your browser media device API. It executes real-time fundamental frequency pitch tracking, transforming your hum or vocal beatboxing patterns immediately into standard MIDI notation data, then automatically loads matching asset sounds from your local collection."
+            },
+            {
+                keywords: ["terms", "conditions", "lawsuit", "legal", "policy"],
+                response: "The ChrisDrew Beats legal framework specifies: 1. Users maintain continuous validation that all assets uploaded are completely original or certified under clear transfer structures. 2. Platform transaction parameters pass directly through multi-party escrow clearing pools. 3. System exploitation attempts immediately break active token states and cause platform-wide blacklisting."
+            },
+            {
+                keywords: ["payment", "card", "stripe", "visa", "mastercard"],
+                response: "To guarantee zero structural vulnerabilities and completely eliminate consumer liability vector flaws, our architecture abstracts checkout procedures using Stripe Tokenized Element frames. Credit/Debit data is converted to cryptographic text tokens directly at the point of origin before touching backend tables."
+            },
+            {
+                keywords: ["pricing", "dynamic", "micro", "licensing", "tiktok"],
+                response: "Dynamic Pricing computes valuation indexing across multi-tiered variables including artist catalog size, listener density patterns, and explicit tracking metrics. Micro-licensing automates lightning-fast creation of short context assets (5s/15s/30s) optimized for immediate licensing verification across social platforms like TikTok or Instagram Reels."
+            }
+        ];
+
+        // Core Window State Operations
+        function toggleChatWindow() {
+            const chatWin = document.getElementById('chrisBotWindow');
+            chatWin.style.color = "#ffffff";
+            chatWin.style.display = (chatWin.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function switchTab(tabId) {
+            alert(`Routing core application window system framework state directly to target node: '${tabId.toUpperCase()}' Layout Component.`);
+        }
+
+        function triggerFeature(msg) {
+            alert(`[System Callback Core Execution Event]: ${msg}`);
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // Core UI Interaction Processing
+        function handleChatKey(event) {
+            if (event.key === 'Enter') {
+                processUserQuery();
+            }
+        }
+
+        // Expanded Query Parsing Router Logic
+        function processUserQuery() {
+            const inputField = document.getElementById('chatInputField');
+            const chatContainer = document.getElementById('chatContainer');
+            const cleanQuery = inputField.value.trim().toLowerCase();
+
+            if (cleanQuery === "") return;
+
+            // Paint user message node
+            chatContainer.innerHTML += `<div class="msg user">${inputField.value}</div>`;
+            const processingText = inputField.value;
+            inputField.value = "";
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Engine Match Scanning
+            setTimeout(() => {
+                let matchedReply = "I recognize your query regarding ChrisDrew Beats operations, however, that particular feature variation falls outside my current internal matrix parameters. Please target explicit structural functions like Stem Separation, Voice-To-Beat tracking, System Terms, or Transaction token structures.";
+
+                for (let knowledgeItem of CHRIS_KNOWLEDGE_BASE) {
+                    let matchFound = knowledgeItem.keywords.some(keyword => cleanQuery.includes(keyword));
+                    if (matchFound) {
+                        matchedReply = knowledgeItem.response;
+                        break;
+                    }
+                }
+
+                chatContainer.innerHTML += `<div class="msg bot"><strong>Chris AI:</strong> ${matchedReply}</div>`;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 600);
+        }
+
+        function displayTermsDocument() {
+            alert("Official Agreement Documentation for ChrisDrew Beats:\n\n" +
+                  "1. INTELLECTUAL PROPERTY INDEMNITY: All platform producers certify that uploaded sound content is cleared of third-party audio infringements. ChrisDrew Beats holds zero operational fault for intentional asset forgery.\n\n" +
+                  "2. COMPLIANCE ESCROW: Automated split systems deploy financial settlements based on cryptographic ledger verification tokens. Altering local client metrics constitutes programmatic fraud.\n\n" +
+                  "3. CONTRACT LIABILITY CLAUSE: Any transaction validation disputes are bound to structural arbitration mechanisms to explicitly eliminate risk profiles and clear any exposure vectors to the business corporate body.");
+        }
+    </script>
 </body>
 </html>
